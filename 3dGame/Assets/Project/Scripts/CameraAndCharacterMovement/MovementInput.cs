@@ -33,13 +33,11 @@ public class MovementInput : MonoBehaviour
         controller = this.GetComponent<CharacterController>();
         desireRotationSpeed = 0.1f;
         allowPlayerRotation = 0.3f;
-
     }
 
     // Update is called once per frame
     void Update()
     {
-
         // MOBILE
 
         // Input.touchCount count how much fingers hit the screen (max 5)
