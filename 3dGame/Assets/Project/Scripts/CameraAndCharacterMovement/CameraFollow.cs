@@ -9,8 +9,7 @@ using UnityEngine;
 //Then parent the MainCamera to this object and apply the "CameraCollision" to the camera. 
 
 [AddComponentMenu("Filmstorm/Camera Follow")]
-public class CameraFollow : MonoBehaviour
-{
+public class CameraFollow : MonoBehaviour {
     [Header("Drag the Object you want to follow here")]
     [Space(5)]
     [Tooltip("The best way to use this is to create an empty gameobject and parent it to your players hip/pelvis bone.")]
@@ -39,10 +38,10 @@ public class CameraFollow : MonoBehaviour
     float inputX;
     float inputZ;
     GameObject player;
-    float side = 0;
 
-    void Start()
-    {
+
+    // Use this for initialization
+    void Start() {
         player = GameObject.FindGameObjectWithTag("Player");
         Vector3 rot = transform.localRotation.eulerAngles;
         rotY = rot.y;
@@ -51,75 +50,11 @@ public class CameraFollow : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-#if UNITY_ANDROID
-        CameraMoveSpeed = 20;
-        clampAngle = 20;
-        inputSensitivity = 0;
-#endif
-
     }
 
-    void Update()
-    {
+    // Update is called once per frame
+    void Update() {
 
-#if UNITY_ANDROID
-        mobileFollow();
-#endif
-
-#if UNITY_STANDALONE_WIN
-        windowsFollow();
-#endif
-
-    }
-
-    void mobileFollow()
-    {
-        Touch touch;
-
-        if (Input.touchCount > 0)
-        {
-            touch = Input.GetTouch(0);
-
-            if (touch.position.x >= Screen.width * 5 / 6)
-            {
-                side = 1;
-            }
-            else if (touch.position.x <= Screen.width / 6)
-            {
-                side = -1;
-            }
-
-            // acceleretion to rotation
-            if (inputSensitivity < 500)
-            {
-                inputSensitivity += 10;
-            }
-
-        }
-        else if (Input.touchCount == 0)
-        {
-            if (inputSensitivity > 0)
-            {
-                inputSensitivity -= 50;
-            }
-            else
-            {
-                inputSensitivity = 0;
-                side = 0;
-            }
-        }
-
-        rotY += side * inputSensitivity * Time.deltaTime;
-        rotX += 0f * inputSensitivity * Time.deltaTime;
-
-        rotX = Mathf.Clamp(rotX, -clampAngle, clampAngle);
-
-        Quaternion localRotation = Quaternion.Euler(rotX, rotY, 0.0f);
-        transform.rotation = localRotation;
-    }
-
-    void windowsFollow()
-    {
         // We setup the rotation of the sticks here
         inputX = Input.GetAxis("RightStickHorizontal");
         inputZ = Input.GetAxis("RightStickVertical");
@@ -135,15 +70,16 @@ public class CameraFollow : MonoBehaviour
 
         Quaternion localRotation = Quaternion.Euler(rotX, rotY, 0.0f);
         transform.rotation = localRotation;
+
+
+
     }
 
-    void LateUpdate()
-    {
+    void LateUpdate() {
         CameraUpdater();
     }
 
-    void CameraUpdater()
-    {
+    void CameraUpdater() {
         // set the target object to follow
         Transform target = CameraFollowObj.transform;
 
