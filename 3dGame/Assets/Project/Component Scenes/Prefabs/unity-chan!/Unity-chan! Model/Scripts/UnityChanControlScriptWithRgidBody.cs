@@ -196,6 +196,6 @@ namespace UnityChan
 			// コンポーネントのHeight、Centerの初期値を戻す
 			col.height = orgColHight;
 			col.center = orgVectColCenter;
-		}
+        }
 	}
 }

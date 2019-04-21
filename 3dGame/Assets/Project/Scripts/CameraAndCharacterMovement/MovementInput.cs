@@ -19,7 +19,7 @@ public class MovementInput : MonoBehaviour
     public bool isGrounded;
     private float verticalVel;
     private Vector3 moveVector;
-    public GameObject particle;
+    float acc;
 
     private bool tapOnTheScreen = false;
     private RaycastHit hit;
@@ -39,45 +39,103 @@ public class MovementInput : MonoBehaviour
     void Update()
     {
         // MOBILE
-
         // Input.touchCount count how much fingers hit the screen (max 5)
         if (Input.touchCount == 1)
         {
             Touch touch = Input.GetTouch(0);
 
+            if (touch.tapCount == 2)
+            {
+                SHIFTClicked = true;
+                return;
+            }
+            
             if (touch.phase == TouchPhase.Ended &&
                 touch.position.x < Screen.width * 5/6 && touch.position.x > Screen.width/6)
             {
                 var ray = Camera.main.ScreenPointToRay(touch.position);
                 if (Physics.Raycast(ray, out hit, 200, layerMask))
                 {
-                    tapOnTheScreen = true;
-                    Speed = 1;
+                    if (Vector3.Distance(transform.position, hit.point) > 1f)
+                    {
+                        tapOnTheScreen = true;
+                        Speed = 1;
+                    } else
+                    {
+                        tapOnTheScreen = false;
+                    }
                 }
             }
         }
-
+        
         float distOnTheTap = Vector3.Distance(transform.position, hit.point);
-        if (tapOnTheScreen && distOnTheTap >= 0)
+        if (tapOnTheScreen)
         {
-            if (distOnTheTap < 0.5f)
+            if (acc < 1 && distOnTheTap>=2) // increase acceleration more and more
+            {
+                acc += 0.005f;
+            }
+
+            if (distOnTheTap <= 0) // if you are exactly on the point tap or over
             {
                 Speed = 0;
+                acc = 0;
+                SHIFTClicked = false;
+                tapOnTheScreen = false;
                 return;
             }
-            else if (distOnTheTap < 1f)
+            else if (distOnTheTap < 2 && SHIFTClicked) // you are running and near the tap
             {
-                Speed = -0.1f;
-                transform.position = Vector3.MoveTowards(transform.position, hit.point, Speed * Time.deltaTime);
+                Speed -= 0.1f;
+                if (Speed > 0.5f)
+                {
+                    transform.position = Vector3.MoveTowards(transform.position, hit.point, Speed * Time.deltaTime);
+                }
+                else
+                {
+                    Speed = 0;
+                    acc = 0;
+                    SHIFTClicked = false;
+                    tapOnTheScreen = false;
+                    distOnTheTap = 0;
+                    return;
+                }
+            }
+            else if (distOnTheTap < 1) // you are walking and near the tap
+            {
+                Speed -= 0.1f;
+                if (Speed > 0.5f)
+                {
+                    transform.position = Vector3.MoveTowards(transform.position, hit.point, Speed * Time.deltaTime);
+                }
+                else
+                {
+                    Speed = 0;
+                    acc = 0;
+                    SHIFTClicked = false;
+                    tapOnTheScreen = false;
+                    distOnTheTap = 0;
+                    return;
+                }
             }
 
             Vector3 heading = hit.point - transform.position;
             float distance = heading.magnitude;
             Vector3 desiredMoveDirection = heading / distance; // This is now the normalized direction.
 
-            // Set animator parameters
-            anim.SetFloat("InputMagnitude", Speed, 0.0f, Time.deltaTime);
+            // Play animation
+            if (SHIFTClicked)
+            {
+                anim.SetFloat("InputMagnitude", Speed + 1, 0.5f, Time.deltaTime);
+                transform.Translate(new Vector3(0, 0, Time.deltaTime * acc * 4)); // sprint
+            }
+            else
+            {
+                anim.SetFloat("InputMagnitude", Speed, 0.0f, Time.deltaTime);
+                transform.Translate(new Vector3(0, 0, Time.deltaTime * acc * 2)); // sprint
+            }
 
+            // Rotation movement
             if (blockRotationPlayer == false)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(desiredMoveDirection), desireRotationSpeed);
@@ -195,4 +253,5 @@ public class MovementInput : MonoBehaviour
         moveVector = new Vector3(0, verticalVel, 0);
         controller.Move(moveVector);
     }
+    
 }
